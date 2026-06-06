@@ -7,7 +7,7 @@ public class GameManager : MonoBehaviour
     private int GameState;
 
     [Header("Prefab")]
-    public GameObject [] Lintasan = new GameObject [2];
+    public GameObject [] Lintasan = new GameObject [3];
     private int IndexLintasan = 0;
 
 
@@ -16,12 +16,11 @@ public class GameManager : MonoBehaviour
     public float PosisiPlayer;
 
     [Header("Lintasan Awal di Scene")]
-    public GameObject LintasanAwal1;
-    public GameObject LintasanAwal2;
+    public GameObject LintasanAwal1, LintasanAwal2, LintasanAwal3;
 
     private List<GameObject> DaftarLintasan = new List<GameObject>();
 
-    public float PosisiLintasanBaru = 48f*2;
+    public float PosisiLintasanBaru = 48f*3;
     public float BatasLintasanBaru = 48f*2/3;
     public float PanjangLintasan = 48f;
 
@@ -32,6 +31,7 @@ public class GameManager : MonoBehaviour
         GameState=1;
         DaftarLintasan.Add(LintasanAwal1);
         DaftarLintasan.Add(LintasanAwal2);
+        DaftarLintasan.Add(LintasanAwal3);
     }
 
     // Update is called once per frame
@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
             PosisiPlayer = Player.transform.position.z;
 
             //Buat lintasan baru jika posisi player melebihi batas lintasan yang sudah ditentukan
-            if (PosisiPlayer > BatasLintasanBaru)
+            if (PosisiPlayer > BatasLintasanBaru && DaftarLintasan.Count==3)
             {
                BuatJalurBaru();
             }
@@ -80,7 +80,9 @@ public class GameManager : MonoBehaviour
         //tambahkan lintasan yang baru saja dbuat ke dalam daftar lintasan
         DaftarLintasan.Add(LintasanBaru);
         //update index Lintasan agar menggunakan prefab lintasan yang lain
-        IndexLintasan = (IndexLintasan==0)?1:0;
+        if(IndexLintasan==0){IndexLintasan=1;}
+        else if(IndexLintasan==1){IndexLintasan=2;}
+        else if(IndexLintasan==2){IndexLintasan=0;}
 
         //update posisi lintasan baru
         PosisiLintasanBaru += PanjangLintasan;
