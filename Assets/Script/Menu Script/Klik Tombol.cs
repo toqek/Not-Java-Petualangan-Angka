@@ -1,12 +1,14 @@
+using Unity.VectorGraphics;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class KlikTombol : MonoBehaviour
 {
 
-
     [SerializeField]
     Canvas CanvasMenu, CanvasTentang, CanvasLevel;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -72,6 +74,12 @@ public class KlikTombol : MonoBehaviour
             //nyalakan canvas menu
             this.CanvasMenu.enabled = true;
         }
+
+    }
+
+    public void PindahScene(string scene)
+    {
+        SceneManager.LoadScene(scene);
     }
     
         

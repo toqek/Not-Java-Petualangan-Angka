@@ -1,9 +1,8 @@
 using UnityEngine;
 
-public class Control : MonoBehaviour
+public class AwanController : MonoBehaviour
 {
-
-    public float KecepatanPlayer;
+    public float KecepatanAwan=2f;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -13,7 +12,6 @@ public class Control : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.transform.Translate(0,0,KecepatanPlayer);
-        
+        this.transform.Translate(KecepatanAwan*Time.deltaTime,0,0);
     }
 }
