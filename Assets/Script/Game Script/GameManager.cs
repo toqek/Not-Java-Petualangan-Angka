@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem.Controls;
 
 public class GameManager : MonoBehaviour
 {
@@ -24,6 +27,16 @@ public class GameManager : MonoBehaviour
     public float BatasLintasanBaru = 48f*2/3;
     public float PanjangLintasan = 48f;
 
+   // public TextMeshPro Text;
+    public TextMeshProUGUI TextSoal;
+    public int JumlahJawaban = 3;
+    public GameObject PrefabJawaban;
+    public float JarakJawaban;
+    public bool SpawnSoal;
+    public int JawabanBenar;
+    public float PosisiSoalBaru = 50f;
+    private List<GameObject> ListJawaban = new List<GameObject>();
+    
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -47,6 +60,9 @@ public class GameManager : MonoBehaviour
             if (PosisiPlayer > BatasLintasanBaru && DaftarLintasan.Count==3)
             {
                BuatJalurBaru();
+               if(!SpawnSoal){
+                   
+               }
             }
             //Hapus Lintasan lama yang sudah dilalui jika daftar lintasan lebih dari 3
             else if (DaftarLintasan.Count>3)
@@ -54,6 +70,14 @@ public class GameManager : MonoBehaviour
                HapusJalurLama();
             }
 
+            //Buat Soal Baru
+            
+            if (!SpawnSoal)
+            {
+                BuatSoal();
+                SpawnSoal=true;
+            }
+                  
 
 
         } 
@@ -98,6 +122,85 @@ public class GameManager : MonoBehaviour
         {
             DaftarLintasan.RemoveAt(0);
             Destroy(LintasanLama);
+        }
+    }
+
+    void BuatSoal()
+    {
+        int a = UnityEngine.Random.Range(1,10);
+        int b = UnityEngine.Random.Range(1,10);
+        JawabanBenar = a+b;
+
+        TextSoal.SetText(a+" + "+b+" = ?");
+        bool jawabanUdahAda = false;
+        for(int i=0; i<JumlahJawaban; i++)
+        {
+            int randomBenar = UnityEngine.Random.Range(0,1);
+
+            GameObject ObjJawaban = Instantiate(PrefabJawaban,
+            new Vector3(0,2,PosisiSoalBaru),Quaternion.identity);
+
+            
+
+            Jawaban Jawaban = ObjJawaban.GetComponent<Jawaban>();
+
+            int c = UnityEngine.Random.Range(1,100);
+            Jawaban.setText(c.ToString(),this);
+            
+
+            if (i == 1)
+            {
+                ObjJawaban.transform.position += Vector3.right*JarakJawaban;
+                
+            }
+            else if (i == 2)
+            {
+                ObjJawaban.transform.position += Vector3.left*JarakJawaban;
+            }
+
+            if (randomBenar == 1 && !jawabanUdahAda)
+            {
+                Jawaban.setText(JawabanBenar.ToString(),this);
+                jawabanUdahAda=true;
+            }
+            if (i == JumlahJawaban - 1 && jawabanUdahAda == false)
+            {
+                Jawaban.setText(JawabanBenar.ToString(),this);
+                jawabanUdahAda=true;
+
+            }
+
+            ListJawaban.Add(ObjJawaban);
+            
+
+        }
+
+        PosisiSoalBaru+=50f;
+
+    }
+
+    public void CheckJawaban(String nilai)
+    {
+        SpawnSoal = false;
+        int n = int.Parse(nilai);
+
+        if (n == JawabanBenar)
+        {
+            Debug.Log("Benar");
+            for(int i =0; i<JumlahJawaban; i++)
+            {
+
+                GameObject Hapus = ListJawaban[i];
+                ListJawaban.RemoveAt(0);
+                Destroy(Hapus);
+                
+            }
+            
+        }
+        else
+        {
+            Debug.Log("Salah");
+            Player.GetComponent<PlayerController>().BisaJalan = false;
         }
     }
 }

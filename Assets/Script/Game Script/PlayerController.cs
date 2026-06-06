@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviour
     // Posisi X setiap jalur
     private float[] laneX = { -2f, 0f, 2f };
 
+    public bool BisaJalan = true;
+
     // 2. Wajib aktifkan EnhancedTouch saat objek aktif
     private void OnEnable()
     {
@@ -32,6 +34,9 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // Bola terus maju
+        if(!BisaJalan)
+            return;
+            
         transform.position += Vector3.forward * KecepatanMaju * Time.deltaTime;
 
         HandleSwipe();
