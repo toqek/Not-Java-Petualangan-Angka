@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     [Header("Player")]
     public GameObject Player;
     public float PosisiPlayer;
+    public TextMeshProUGUI TMPSpeed;
 
     [Header("Lintasan Awal di Scene")]
     public GameObject LintasanAwal1, LintasanAwal2, LintasanAwal3;
@@ -68,6 +69,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        this.TMPSoal.enabled=true;
+        
         GameState = 1;
         
         DaftarLintasan.Add(LintasanAwal1);
@@ -78,7 +81,11 @@ public class GameManager : MonoBehaviour
 
         GenerateFormasiKoin(3);
         GenerateRintanganBatu(3); 
+
+        UpdateTextSpeed();
     }
+
+        
 
     void Update()
     {
@@ -288,6 +295,7 @@ public class GameManager : MonoBehaviour
             PosisiKoinZBaru += UnityEngine.Random.Range(8f, 15f);
         }
     }
+    
 
     public void AmbilKoin()
     {
@@ -298,6 +306,12 @@ public class GameManager : MonoBehaviour
     void UpdateTextSkor()
     {
         if (TMPScore != null) TMPScore.SetText("Poin:" + SkorTertinggi);
+    }
+
+    void UpdateTextSpeed()
+    {
+        TMPSpeed.SetText("Speed:" +Player.GetComponent<PlayerController>().KecepatanMaju);
+    
     }
 
     public void PlayerKalah()
@@ -312,6 +326,7 @@ public class GameManager : MonoBehaviour
         }
 
        this.GetComponent<UIManager>().TampilkanMenuGameOver(SkorTertinggi);
+       this.TMPSoal.enabled=false;
     }
 
     public void CheckJawaban(string nilai)
@@ -320,11 +335,13 @@ public class GameManager : MonoBehaviour
 
         if (n == JawabanBenar)
         {
+            
+
             Debug.Log("Jawaban Benar!");
             SkorTertinggi += SkorJawaban;
             UpdateTextSkor();
-            Player.GetComponent<PlayerController>().KecepatanMaju+=0.5f;
-
+            Player.GetComponent<PlayerController>().KecepatanMaju+=0.8f;
+            UpdateTextSpeed();
             // Sesaat setelah jawaban benar diverifikasi, hapus catatan posisi Z gerbang ini dari list
             if (PosisiZGerbangAktif.Count > 0)
             {

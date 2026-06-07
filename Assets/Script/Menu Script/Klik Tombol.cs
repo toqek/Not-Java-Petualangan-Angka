@@ -13,7 +13,9 @@ public class KlikTombol : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        CanvasMenu.enabled= true;
+        CanvasTentang.enabled = false;
+        CanvasLevel.enabled=false;
     }
 
     // Update is called once per frame
@@ -25,7 +27,8 @@ public class KlikTombol : MonoBehaviour
     //Untuk keluar dari aplikasi
     public void Keluar()
     {
-        Debug.Log("Keluar");
+        PlayClickSound();
+        //Debug.Log("Keluar");
 
         //keluar aplikasi
         Application.Quit();
@@ -34,7 +37,8 @@ public class KlikTombol : MonoBehaviour
     //Untuk masuk ke menu tentang
     public void Tentang()
     {
-        Debug.Log("Tentang");
+        PlayClickSound();
+        //Debug.Log("Tentang");
         
         //matikan canvas main menu
         this.CanvasMenu.enabled=false;
@@ -45,7 +49,8 @@ public class KlikTombol : MonoBehaviour
     //Untuk masuk ke pilih level
     public void Mulai()
     {
-        Debug.Log("Pilih Level");
+        PlayClickSound();
+       // Debug.Log("Pilih Level");
         
         //matikan canvas main menu
         this.CanvasMenu.enabled=false;
@@ -57,6 +62,8 @@ public class KlikTombol : MonoBehaviour
     //Untuk kembali ke menu sebelumnya dengan parameter nama menu yang aktif
     public void KembaliKeMenu(string canvas)
     {
+        PlayClickSound();
+
         //jika sekarang berada di menu tentang
         if (canvas == "Tentang")
         {
@@ -79,9 +86,20 @@ public class KlikTombol : MonoBehaviour
 
     public void PindahScene(string scene)
     {
+        PlayClickSound();
         SceneManager.LoadScene(scene);
+        
     }
     
+
+    private void PlayClickSound()
+    {
+        AudioSource audioInternal = GetComponent<AudioSource>();
+        if (audioInternal != null && audioInternal.clip != null)
+        {
+            AudioSource.PlayClipAtPoint(audioInternal.clip, transform.position);
+        }
+    }
         
     
     

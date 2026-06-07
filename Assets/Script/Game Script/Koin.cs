@@ -42,31 +42,33 @@ public class Koin : MonoBehaviour
     // --- 2. DETEKSI TABRAKAN ---
     private void OnTriggerEnter(Collider other)
     {
-        // Pastikan objek Bola Anda sudah diberi Tag "Player" di Inspector Unity
         if (other.CompareTag("Player"))
         {
-            // Panggil fungsi penambah skor koin di GameManager
+            // 1. Panggil fungsi penambah skor koin di GameManager
             if (this.gameManager != null)
             {
                 this.gameManager.AmbilKoin();
             }
 
             // ========================================================
-            // TAMBAHAN: Logika memunculkan dan menghancurkan partikel
+            // PERBAIKAN AUDIO: Ambil clip dari AudioSource internal,
+            // lalu putar secara independen agar tidak terpotong saat Destroy!
             // ========================================================
+            AudioSource audioInternal = GetComponent<AudioSource>();
+            if (audioInternal != null && audioInternal.clip != null)
+            {
+                AudioSource.PlayClipAtPoint(audioInternal.clip, transform.position);
+            }
+
+            // 2. Logika memunculkan dan menghancurkan partikel
             if (prefabPartikelKoin != null)
             {
-                // Munculkan partikel persis di koordinat koin saat ini
                 GameObject efek = Instantiate(prefabPartikelKoin, transform.position, Quaternion.identity);
-                
-                // Langsung jadikan efek ini independen (tidak mengikuti pergerakan apapun)
                 efek.transform.parent = null;
-
-                // Hancurkan objek partikel dari hierarchy setelah durasi tertentu (misal 0.6 detik)
                 Destroy(efek, durasiPartikel);
             }
 
-            // Hancurkan koin asli dari scene setelah diambil
+            // 3. Hancurkan koin asli dari scene setelah diambil (Sekarang Aman!)
             Destroy(gameObject);
         }
     }

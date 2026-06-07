@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 // 1. Tambahkan namespace New Input System
 using UnityEngine.InputSystem.EnhancedTouch;
@@ -70,13 +71,14 @@ public class PlayerController : MonoBehaviour
             }
             else if (touch.phase == UnityEngine.InputSystem.TouchPhase.Ended)
             {
-                float deltaX = touch.screenPosition.x - startPos.x;
+                float deltaX = touch.screenPosition.x - startPos.x;      
 
                 if (deltaX > 50)
                     SwipeRight();
 
-                if (deltaX < -50)
+                else if (deltaX < -50)
                     SwipeLeft();
+
             }
         }
     }
@@ -85,11 +87,25 @@ public class PlayerController : MonoBehaviour
     {
         if (currentLane > 0)
             currentLane--;
+
+        this.PlayAudiouSwipe();
     }
 
     void SwipeRight()
     {
         if (currentLane < 2)
             currentLane++;
+
+        this.PlayAudiouSwipe();
+    }
+
+    void PlayAudiouSwipe()
+    {
+        //play audio swipe
+        AudioSource audioInternal = GetComponent<AudioSource>();
+        if (audioInternal != null && audioInternal.clip != null)
+        {
+            AudioSource.PlayClipAtPoint(audioInternal.clip, transform.position);
+        }
     }
 }
