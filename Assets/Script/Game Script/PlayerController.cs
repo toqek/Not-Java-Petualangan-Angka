@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     private int currentLane = 1;
 
     // Posisi X setiap jalur
-    private float[] laneX = { -2f, 0f, 2f };
+    private float[] laneX = { -3.7f, 0f, 3.7f };
 
     public bool BisaJalan = true;
 
