@@ -6,8 +6,8 @@ public class GerbangJawaban : MonoBehaviour
 {
     public TextMeshPro TMPJawaban;
     private GameManager GM;
-    private GMperkalian GMperkalian;
-    
+    private GMPengurangan GMP;
+
     // ========================================================
     // TAMBAHAN: Variabel untuk Efek Partikel Gerbang
     // ========================================================
@@ -32,9 +32,9 @@ public class GerbangJawaban : MonoBehaviour
         }
     }
 
-    public void setText(string Jawaban, GMperkalian GM)
+    public void setText(string Jawaban, GMPengurangan GMP)
     {
-        this.GMperkalian = GM;
+        this.GMP = GMP;
         if (TMPJawaban != null)
         {
             TMPJawaban.SetText(Jawaban);
