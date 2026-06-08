@@ -26,6 +26,13 @@ public class Batu : MonoBehaviour
     {
         if (objekPenabrak.CompareTag("Player") && gameManager != null)
         {
+             //play audio swipe
+            AudioSource audioInternal = GetComponent<AudioSource>();
+            if (audioInternal != null && audioInternal.clip != null)
+            {
+                AudioSource.PlayClipAtPoint(audioInternal.clip, transform.position);
+            }
+            
             Debug.Log("Player Menabrak Batu! Game Over.");
             gameManager.PlayerKalah(); // Panggil fungsi kalah di GameManager
         }

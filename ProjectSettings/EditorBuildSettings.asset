@@ -5,15 +5,24 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 0
+    path: Assets/Scenes/SampleScene.unity
+    guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
     path: Assets/Scenes/Main Menu.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    guid: f46369be346f14aa3b252a764de2058a
   - enabled: 1
     path: Assets/Scenes/Level Penjumlahan.unity
     guid: b9f80bd4b3538438fa4fde9e5776a7bc
   - enabled: 1
     path: Assets/Scenes/Level Pengurangan.unity
-    guid: d81d807d14221a74e846664fa95b3d0b
+    guid: aa64347518188497f8179f0092005352
+  - enabled: 1
+    path: Assets/Scenes/Level Perkalian.unity
+    guid: d4cbffadd5b514bc4a07ac9604f87455
+  - enabled: 1
+    path: Assets/Scenes/Level Pembagian.unity
+    guid: 1c390b816e4684a29b175fbbe5c93dd5
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

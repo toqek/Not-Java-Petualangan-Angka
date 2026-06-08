@@ -6,7 +6,6 @@ public class GerbangJawaban : MonoBehaviour
 {
     public TextMeshPro TMPJawaban;
     private GameManager GM;
-    private GMPengurangan GMP;
 
     // ========================================================
     // TAMBAHAN: Variabel untuk Efek Partikel Gerbang
@@ -26,15 +25,6 @@ public class GerbangJawaban : MonoBehaviour
     public void setText(string Jawaban, GameManager GM)
     {
         this.GM = GM;
-        if (TMPJawaban != null)
-        {
-            TMPJawaban.SetText(Jawaban);
-        }
-    }
-
-    public void setText(string Jawaban, GMPengurangan GMP)
-    {
-        this.GMP = GMP;
         if (TMPJawaban != null)
         {
             TMPJawaban.SetText(Jawaban);
@@ -62,6 +52,17 @@ public class GerbangJawaban : MonoBehaviour
                 // 2. Spawn prefab partikel di posisi gerbang
                 GameObject efek = Instantiate(prefabPartikelGerbang, transform.position, Quaternion.identity);
 
+                // ========================================================
+                // PERBAIKAN AUDIO: Ambil clip dari AudioSource internal,
+                // lalu putar secara independen agar tidak terpotong saat Destroy!
+                // ========================================================
+                AudioSource audioInternal = GetComponent<AudioSource>();
+                if (audioInternal != null && audioInternal.clip != null)
+                {
+                    AudioSource.PlayClipAtPoint(audioInternal.clip, transform.position);
+                }
+
+
                 // 3. Suntikkan warna gerbang ke komponen Particle System yang baru lahir
                 ParticleSystem ps = efek.GetComponent<ParticleSystem>();
                 if (ps != null)
@@ -69,6 +70,8 @@ public class GerbangJawaban : MonoBehaviour
                     // Mengubah warna utama (Main Module) dari partikel secara real-time
                     var mainModule = ps.main;
                     mainModule.startColor = warnaGerbangIni;
+
+                    
                 }
 
                 // 4. Hancurkan objek partikel dari hierarchy setelah durasi selesai

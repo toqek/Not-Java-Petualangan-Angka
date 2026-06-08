@@ -1,0 +1,370 @@
+using System;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+
+public class GameManager2
+ : MonoBehaviour
+{
+    [SerializeField] private int GameState;
+    [Header("Prefab Lintasan")]
+    public GameObject[] Lintasan = new GameObject[3];
+    private int IndexLintasan = 0;
+
+    [Header("Player")]
+    public GameObject Player;
+    public float PosisiPlayer;
+    public TextMeshProUGUI TMPSpeed;
+
+    [Header("Lintasan Awal di Scene")]
+    public GameObject LintasanAwal1, LintasanAwal2, LintasanAwal3;
+    private List<GameObject> DaftarLintasan = new List<GameObject>();
+
+    [Header("Konfigurasi Lintasan")]
+    public float PosisiLintasanBaru = 48f * 3;
+    public float BatasLintasanBaru = 48f * 2 / 3;
+    public float PanjangLintasan = 48f;
+
+    [Header("Sistem Soal Matematika")]
+    public TextMeshProUGUI TMPSoal;
+    public GameObject PrefabJawaban;
+    public int JumlahJawaban = 3;
+    public float JarakJawaban = 3.7f;
+    public float PosisiSoalBaru = 50f;
+
+    [Header("Warna Gerbang Jawaban")]
+    public Color[] WarnaGerbang = new Color[3] {
+       // 1. KUNING NEON (Cerah, tajam, dan mencolok)
+    new Color(1.0f, 1.0f, 0.0f),  
+
+    // 2. BIRU NEON / CYAN (Sangat terang ala lampu neon jalanan)
+    new Color(0.0f, 0.8f, 1.0f),  
+
+    // 3. UNGU NEON / MAGENTA (Warna ungu elektrik yang pekat dan menyala)
+    new Color(0.7f, 0.0f, 1.0f)  
+    };
+    
+    [HideInInspector] public int JawabanBenar;
+    [HideInInspector] public bool SpawnSoal;
+
+    private List<GameObject> ListJawaban = new List<GameObject>();
+    
+    // PERBAIKAN: List untuk mencatat posisi Z gerbang yang sedang aktif di scene
+    private List<float> PosisiZGerbangAktif = new List<float>();
+
+    [Header("Informasi Skor")]
+    public TextMeshProUGUI TMPScore;
+    private int SkorTertinggi = 0;
+    public int SkorJawaban = 10;
+    public int SkorKoin = 1;
+
+    [Header("Sistem Otomatis Koin")]
+    public GameObject PrefabKoin;          
+    private float PosisiKoinZBaru = 15f;    
+    private float LajurTerakhirX = 0f;      
+
+    [Header("Sistem Otomatis Rintangan Batu")]
+    public GameObject PrefabBatu;          
+    private float PosisiBatuZBaru = 30f;    
+    private int IndeksJalurBenarTerakhir = 0; 
+    
+    private List<GameObject> ListBatuAktif = new List<GameObject>();
+    private int MaksimalBatuDiScene = 3;
+
+    private float[] opsiX = new float[] { -3.7f, 0f, 3.7f }; 
+
+    void Start()
+    {
+        this.TMPSoal.enabled=true;
+        
+        GameState = 1;
+        
+        DaftarLintasan.Add(LintasanAwal1);
+        DaftarLintasan.Add(LintasanAwal2);
+        DaftarLintasan.Add(LintasanAwal3);
+
+        UpdateTextSkor();
+
+        GenerateFormasiKoin(3);
+        GenerateRintanganBatu(3); 
+
+        UpdateTextSpeed();
+    }
+
+        
+
+    void Update()
+    {
+        if (GameState == 1)
+        {
+            PosisiPlayer = Player.transform.position.z;
+
+            if (PosisiPlayer > BatasLintasanBaru && DaftarLintasan.Count == 3)
+            {
+                BuatJalurBaru();
+            }
+            else if (DaftarLintasan.Count > 3)
+            {
+                HapusJalurLama();
+            }
+
+            if (!SpawnSoal)
+            {
+                BuatSoal();
+                SpawnSoal = true;
+            }
+
+            HapusBatuSudahDilewati();
+        }
+    }
+
+    void BuatJalurBaru()
+    {
+        GameObject LintasanBaru = Instantiate(Lintasan[IndexLintasan], new Vector3(0, 0, PosisiLintasanBaru), Quaternion.identity);
+        DaftarLintasan.Add(LintasanBaru);
+
+        IndexLintasan = (IndexLintasan + 1) % Lintasan.Length;
+        PosisiLintasanBaru += PanjangLintasan;
+        BatasLintasanBaru += (PanjangLintasan * 2f / 3f);
+
+        GenerateFormasiKoin(3);
+        GenerateRintanganBatu(2); 
+    }
+
+    void HapusJalurLama()
+    {
+        GameObject LintasanLama = DaftarLintasan[0];
+        if (PosisiPlayer > LintasanLama.transform.position.z + PanjangLintasan)
+        {
+            DaftarLintasan.RemoveAt(0);
+            Destroy(LintasanLama);
+        }
+    }
+
+    void BuatSoal()
+    {
+        int a = UnityEngine.Random.Range(1, 10);
+        int b = UnityEngine.Random.Range(1, 10);
+        JawabanBenar = a + b;
+
+        TMPSoal.SetText($"{a} + {b} = ?");
+        int indeksJawabanBenar = UnityEngine.Random.Range(0, JumlahJawaban);
+        IndeksJalurBenarTerakhir = indeksJawabanBenar; 
+
+        // PERBAIKAN: Catat posisi koordinat Z gerbang ini sebelum di-instantiate
+        PosisiZGerbangAktif.Add(PosisiSoalBaru);
+
+        for (int i = 0; i < JumlahJawaban; i++)
+        {
+            Vector3 posisiSpawn = new Vector3(0, 2, PosisiSoalBaru);
+            if (i == 1) posisiSpawn += Vector3.right * JarakJawaban;
+            else if (i == 2) posisiSpawn += Vector3.left * JarakJawaban;
+
+            GameObject ObjJawaban = Instantiate(PrefabJawaban, posisiSpawn, Quaternion.identity);
+            GerbangJawaban gerbangScript = ObjJawaban.GetComponent<GerbangJawaban>();
+
+            Renderer rend = ObjJawaban.GetComponentInChildren<Renderer>();
+            if (rend != null && i < WarnaGerbang.Length)
+            {
+                rend.material.color = WarnaGerbang[i];
+                rend.material.SetColor("_EmissionColor", WarnaGerbang[i] * 2f); 
+            }
+
+            if (i == indeksJawabanBenar)
+            {
+                //gerbangScript.setText(JawabanBenar.ToString(), this);
+            }
+            else
+            {
+                int jawabanSalah = UnityEngine.Random.Range(1, 20);
+                while (jawabanSalah == JawabanBenar)
+                {
+                    jawabanSalah = UnityEngine.Random.Range(1, 20);
+                }
+               // gerbangScript.setText(jawabanSalah.ToString(), this);
+            }
+
+            ListJawaban.Add(ObjJawaban);
+        }
+
+        if (PosisiKoinZBaru < PosisiSoalBaru + 5f) PosisiKoinZBaru = PosisiSoalBaru + 10f;
+
+        PosisiSoalBaru += 50f;
+    }
+
+    // PERBAIKAN UTAMA: Filter deteksi area steril gerbang menggunakan matematika absolut (Jarak 15f)
+    void GenerateRintanganBatu(int jumlahBarisBatu)
+    {
+        if (PrefabBatu == null) return;
+
+        for (int b = 0; b < jumlahBarisBatu; b++)
+        {
+            if (ListBatuAktif.Count >= MaksimalBatuDiScene)
+            {
+                return; 
+            }
+
+            // PERBAIKAN LOGIKA STERIL GERBANG (15f):
+            // Lakukan pengecekan ke setiap gerbang yang tercatat aktif di scene saat ini
+            foreach (float zGerbang in PosisiZGerbangAktif)
+            {
+                // Jika jarak antara koordinat target batu dan koordinat gerbang kurang dari 15f
+                if (Mathf.Abs(PosisiBatuZBaru - zGerbang) <= 15f)
+                {
+                    // Geser paksa posisi batu ke area aman (16f di belakang gerbang tersebut)
+                    PosisiBatuZBaru = zGerbang + 16f;
+                }
+            }
+
+            int jumlahBatuDiBarisIni = UnityEngine.Random.Range(1, 3); 
+
+            if (jumlahBatuDiBarisIni == 1)
+            {
+                float lajurX = opsiX[UnityEngine.Random.Range(0, opsiX.Length)];
+                
+                // Sinkronisasi ketinggian Y batu agar pas di atas jalan (misal: 0.1f atau sesuai prefab)
+                Vector3 posisiBatu = new Vector3(lajurX, 0.1f, PosisiBatuZBaru);
+                
+                GameObject batuBaru = Instantiate(PrefabBatu, posisiBatu, Quaternion.identity);
+                ListBatuAktif.Add(batuBaru);
+            }
+            else if (jumlahBatuDiBarisIni == 2)
+            {
+                int lajurLolos = UnityEngine.Random.Range(0, 3); 
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (i != lajurLolos && ListBatuAktif.Count < MaksimalBatuDiScene)
+                    {
+                        Vector3 posisiBatu = new Vector3(opsiX[i], 0.1f, PosisiBatuZBaru);
+                        GameObject batuBaru = Instantiate(PrefabBatu, posisiBatu, Quaternion.identity);
+                        ListBatuAktif.Add(batuBaru);
+                    }
+                }
+            }
+
+            PosisiBatuZBaru += UnityEngine.Random.Range(15f, 25f);
+        }
+    }
+
+    void HapusBatuSudahDilewati()
+    {
+        for (int i = ListBatuAktif.Count - 1; i >= 0; i--)
+        {
+            GameObject batu = ListBatuAktif[i];
+
+            if (batu == null)
+            {
+                ListBatuAktif.RemoveAt(i);
+            }
+            else if (PosisiPlayer > batu.transform.position.z + 3f) 
+            {
+                ListBatuAktif.RemoveAt(i);
+                Destroy(batu);
+                Debug.Log("Batu lama dihancurkan karena sudah dilewati.");
+
+                GenerateRintanganBatu(1);
+            }
+        }
+    }
+
+    void GenerateFormasiKoin(int jumlahGrup)
+    {
+        if (PrefabKoin == null) return;
+
+        for (int g = 0; g < jumlahGrup; g++)
+        {
+            float lajurX = opsiX[UnityEngine.Random.Range(0, opsiX.Length)];
+            while (lajurX == LajurTerakhirX)
+            {
+                lajurX = opsiX[UnityEngine.Random.Range(0, opsiX.Length)];
+            }
+            LajurTerakhirX = lajurX;
+
+            int panjangDeret = UnityEngine.Random.Range(3, 6);
+            float jarakKoinZ = UnityEngine.Random.Range(2.5f, 3.5f);
+
+            for (int i = 0; i < panjangDeret; i++)
+            {
+                if (Mathf.Abs(PosisiKoinZBaru - PosisiBatuZBaru) < 3f)
+                {
+                    PosisiKoinZBaru += 4f; 
+                }
+
+                Vector3 posisiSpawnKoin = new Vector3(lajurX, 1f, PosisiKoinZBaru);
+                Quaternion rotasiKoin90X = Quaternion.Euler(90f, 0f, UnityEngine.Random.Range(0, 360));
+
+                Instantiate(PrefabKoin, posisiSpawnKoin, rotasiKoin90X);
+                PosisiKoinZBaru += jarakKoinZ;
+            }
+
+            PosisiKoinZBaru += UnityEngine.Random.Range(8f, 15f);
+        }
+    }
+    
+
+    public void AmbilKoin()
+    {
+        SkorTertinggi += SkorKoin;
+        UpdateTextSkor();
+    }
+
+    void UpdateTextSkor()
+    {
+        if (TMPScore != null) TMPScore.SetText("Poin:" + SkorTertinggi);
+    }
+
+    void UpdateTextSpeed()
+    {
+        TMPSpeed.SetText("Speed:" +Player.GetComponent<PlayerController>().KecepatanMaju);
+    
+    }
+
+    public void PlayerKalah()
+    {
+        Debug.Log("GAME OVER!");
+        GameState = 3; 
+        
+        PlayerController playerCtrl = Player.GetComponent<PlayerController>();
+        if (playerCtrl != null)
+        {
+            playerCtrl.BisaJalan = false;
+        }
+
+       this.GetComponent<UIManager>().TampilkanMenuGameOver(SkorTertinggi);
+       this.TMPSoal.enabled=false;
+    }
+
+    public void CheckJawaban(string nilai)
+    {
+        int n = int.Parse(nilai);
+
+        if (n == JawabanBenar)
+        {
+            
+
+            Debug.Log("Jawaban Benar!");
+            SkorTertinggi += SkorJawaban;
+            UpdateTextSkor();
+            Player.GetComponent<PlayerController>().KecepatanMaju+=0.8f;
+            UpdateTextSpeed();
+            // Sesaat setelah jawaban benar diverifikasi, hapus catatan posisi Z gerbang ini dari list
+            if (PosisiZGerbangAktif.Count > 0)
+            {
+                PosisiZGerbangAktif.RemoveAt(0);
+            }
+
+            foreach (GameObject gerbang in ListJawaban)
+            {
+                if (gerbang != null) Destroy(gerbang);
+            }
+            ListJawaban.Clear();
+            SpawnSoal = false; 
+        }
+        else
+        {
+            Debug.Log("Jawaban Salah!");
+            PlayerKalah(); 
+        }
+    }
+}
