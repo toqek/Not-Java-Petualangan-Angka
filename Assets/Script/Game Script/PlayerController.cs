@@ -1,8 +1,8 @@
 using Unity.VisualScripting;
 using UnityEngine;
-// 1. Tambahkan namespace New Input System
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch; // Menghindari bentrok dengan Touch lama
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 public class PlayerController : MonoBehaviour
 {
@@ -11,22 +11,18 @@ public class PlayerController : MonoBehaviour
     public float KecepatanPindahJalur = 10f;
 
     private Vector2 startPos;
+    private bool isDragging = false;
 
-    // 0 = kiri, 1 = tengah, 2 = kanan
     private int currentLane = 1;
-
-    // Posisi X setiap jalur
     private float[] laneX = { -3.7f, 0f, 3.7f };
 
     public bool BisaJalan = true;
 
-    // 2. Wajib aktifkan EnhancedTouch saat objek aktif
     private void OnEnable()
     {
         EnhancedTouchSupport.Enable();
     }
 
-    // 3. Matikan EnhancedTouch saat objek tidak aktif
     private void OnDisable()
     {
         EnhancedTouchSupport.Disable();
@@ -34,22 +30,20 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Bola terus maju
-        if(!BisaJalan)
+        if (!BisaJalan)
             return;
-            
+
         transform.position += Vector3.forward * KecepatanMaju * Time.deltaTime;
 
         HandleSwipe();
+        HandleMouseSwipe();
 
-        // Target posisi sesuai jalur
         Vector3 targetPosition = new Vector3(
             laneX[currentLane],
             transform.position.y,
             transform.position.z
         );
 
-        // Pindah jalur dengan halus
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPosition,
@@ -57,29 +51,49 @@ public class PlayerController : MonoBehaviour
         );
     }
 
+    // ── Touch (mobile) ───────────────────────────────────────────────────
     void HandleSwipe()
     {
-        // 4. Gunakan Touch.activeTouches milik New Input System
         if (Touch.activeTouches.Count > 0)
         {
             Touch touch = Touch.activeTouches[0];
 
             if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began)
             {
-                // Ambil posisi awal dari screenPosition
                 startPos = touch.screenPosition;
             }
             else if (touch.phase == UnityEngine.InputSystem.TouchPhase.Ended)
             {
-                float deltaX = touch.screenPosition.x - startPos.x;      
+                float deltaX = touch.screenPosition.x - startPos.x;
 
                 if (deltaX > 50)
                     SwipeRight();
-
                 else if (deltaX < -50)
                     SwipeLeft();
-
             }
+        }
+    }
+
+    // ── Mouse (PC) — New Input System ───────────────────────────────────
+    void HandleMouseSwipe()
+    {
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
+        if (mouse.leftButton.wasPressedThisFrame)
+        {
+            startPos = mouse.position.ReadValue();
+            isDragging = true;
+        }
+        else if (mouse.leftButton.wasReleasedThisFrame && isDragging)
+        {
+            isDragging = false;
+            float deltaX = mouse.position.ReadValue().x - startPos.x;
+
+            if (deltaX > 50)
+                SwipeRight();
+            else if (deltaX < -50)
+                SwipeLeft();
         }
     }
 
@@ -88,7 +102,7 @@ public class PlayerController : MonoBehaviour
         if (currentLane > 0)
             currentLane--;
 
-        this.PlayAudiouSwipe();
+        PlayAudiouSwipe();
     }
 
     void SwipeRight()
@@ -96,12 +110,11 @@ public class PlayerController : MonoBehaviour
         if (currentLane < 2)
             currentLane++;
 
-        this.PlayAudiouSwipe();
+        PlayAudiouSwipe();
     }
 
     void PlayAudiouSwipe()
     {
-        //play audio swipe
         AudioSource audioInternal = GetComponent<AudioSource>();
         if (audioInternal != null && audioInternal.clip != null)
         {

@@ -189,7 +189,7 @@ public class GameManager
                 break;
         }
 
-        TMPSoal.SetText($"{a} {simbolOperasi} {b} = ?");
+        TMPSoal.SetText($"{a}{simbolOperasi}{b}=?");
         int indeksJawabanBenar = UnityEngine.Random.Range(0, JumlahJawaban);
 
         // PERBAIKAN: Catat posisi koordinat Z gerbang ini sebelum di-instantiate

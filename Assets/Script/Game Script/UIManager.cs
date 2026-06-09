@@ -1,14 +1,17 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
-using System.Collections; // Wajib ditambahkan untuk mengontrol TextMeshPro
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
     [Header("Referensi UI Canvas")]
-    public GameObject canvasMenu;        // Tarik objek CanvasMenu ke sini
-    public TextMeshProUGUI teksJudulMenu; // Tarik objek komponen Text (Judul) ke sini
-    public GameObject tombolKembali;     // Tarik objek Tombol Kembali ke sini
+    public GameObject canvasMenu;
+    public TextMeshProUGUI teksJudulMenu;
+    public GameObject tombolKembali;
+
+    [Header("Tombol Pause (pojok kanan atas)")]
+    public GameObject tombolPause;       // Tarik objek tombol pause ke sini
 
     [Header("Referensi Player")]
     private PlayerController playerController;
@@ -17,44 +20,42 @@ public class UIManager : MonoBehaviour
     {
         playerController = Object.FindFirstObjectByType<PlayerController>();
 
-        // Sembunyikan canvas di awal game
-        if (canvasMenu != null)
-        {
-            canvasMenu.SetActive(false);
-        }
-        
-        Time.timeScale = 1f; 
+        if (canvasMenu != null) canvasMenu.SetActive(false);
+
+        // Pastikan tombol pause muncul saat game dimulai
+        if (tombolPause != null) tombolPause.SetActive(true);
+
+        Time.timeScale = 1f;
     }
 
     // ==========================================
-    // 1. FUNGSI KHUSUS TOMBOL PAUSE (DI ATAS LAYAR)
+    // 1. PAUSE
     // ==========================================
     public void TampilkanMenuPause()
     {
+        PlayClickSound();
+
         if (canvasMenu != null) canvasMenu.SetActive(true);
-        
-        // Atur teks judul menjadi PAUSE
         if (teksJudulMenu != null) teksJudulMenu.text = "PAUSE";
-        
-        // Tombol kembali HARUS MUNCUL saat pause
         if (tombolKembali != null) tombolKembali.SetActive(true);
+
+        // Tombol pause tetap tersembunyi selama menu pause terbuka
+        if (tombolPause != null) tombolPause.SetActive(false);
 
         HentikanGame();
     }
 
     // ==========================================
-    // 2. FUNGSI KHUSUS SAAT KALAH / MATI / GAME OVER
+    // 2. GAME OVER
     // ==========================================
-    // Fungsi ini menerima parameter 'poinAkhir' dari script yang membuat player mati
     public void TampilkanMenuGameOver(int poinAkhir)
     {
         if (canvasMenu != null) canvasMenu.SetActive(true);
-        
-        // Ubah teks menjadi "Poin Kamu : [Angka Poin]"
         if (teksJudulMenu != null) teksJudulMenu.SetText("GAME OVER\n" + poinAkhir);
-        
-        // Tombol kembali HARUS SEMBUNYI saat game over
         if (tombolKembali != null) tombolKembali.SetActive(false);
+
+        // Sembunyikan tombol pause saat game over agar tidak bisa ditekan
+        if (tombolPause != null) tombolPause.SetActive(false);
 
         HentikanGame();
     }
@@ -62,34 +63,27 @@ public class UIManager : MonoBehaviour
     private void HentikanGame()
     {
         if (playerController != null) playerController.BisaJalan = false;
-        Time.timeScale = 0f; 
+        Time.timeScale = 0f;
     }
 
-   public void SembunyikanMenu()
+    // ==========================================
+    // SEMBUNYIKAN MENU (Resume dari Pause)
+    // ==========================================
+    public void SembunyikanMenu()
     {
-        if (canvasMenu != null)
-        {
-            canvasMenu.SetActive(false); // Sembunyikan Canvas Menu
-        }
+        if (canvasMenu != null) canvasMenu.SetActive(false);
 
-        // Kembalikan waktu game menjadi normal berjalan
-        Time.timeScale = 1f; 
+        // Tampilkan kembali tombol pause saat resume
+        if (tombolPause != null) tombolPause.SetActive(true);
 
-        // PERBAIKAN: Gunakan Coroutine untuk mengaktifkan pergerakan bola dengan jeda aman
+        Time.timeScale = 1f;
         StartCoroutine(AktifkanGerakanPlayerDenganJeda());
     }
 
-    // Coroutine khusus untuk memberi jeda agar input tombol tidak terbaca sebagai swipe
     private IEnumerator AktifkanGerakanPlayerDenganJeda()
     {
-        // Tunggu sampai akhir frame ini selesai diproses (menghapus sisa input sentuhan)
         yield return new WaitForEndOfFrame();
-        
-        // Baru setelah itu aman untuk mengizinkan player bergerak lagi
-        if (playerController != null)
-        {
-            playerController.BisaJalan = true;
-        }
+        if (playerController != null) playerController.BisaJalan = true;
     }
 
     // ==========================================
@@ -97,19 +91,30 @@ public class UIManager : MonoBehaviour
     // ==========================================
     public void TombolKembali()
     {
+        PlayClickSound();
         SembunyikanMenu();
     }
 
     public void TombolUlang()
     {
+        PlayClickSound();
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void TombolKeluar()
     {
-        Debug.Log("Game Ditutup!");
-       // Application.Quit();
-       SceneManager.LoadScene("Main Menu");
+        PlayClickSound();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Main Menu");
+    }
+
+    private void PlayClickSound()
+    {
+        AudioSource audioInternal = GetComponent<AudioSource>();
+        if (audioInternal != null && audioInternal.clip != null)
+        {
+            AudioSource.PlayClipAtPoint(audioInternal.clip, transform.position);
+        }
     }
 }
